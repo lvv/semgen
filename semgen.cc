@@ -52,6 +52,7 @@ int main(int argc, char** argv)  {
 		cnt_t 		cnt;
 		word_t		word;
 		//id_t		id;
+		cnt_t  dic_word_cnt = 0; 
 
 	while (dic >> cnt >> word,   dic)  {
 							// cout << "cnt: " << cnt << "            word: " << word << endl;
@@ -59,24 +60,38 @@ int main(int argc, char** argv)  {
 		str2id[word] = idx; 
 		TAB.push_back(rec_t());
 		TAB[idx].freq = cnt;
+		dic_word_cnt++;
 	}
+	cerr << "*** dictionary words:  " << dic_word_cnt << endl;
 	
+
 	///// PROCESS DOCS /////////////////////////////////////////////////////////////////////////////
 
 		ifstream 	docs  (argv[1]);	 if (!docs) { cerr << "error: can not open documents file\n";  exit(3); } 
 		istringstream   line_stream;
-		char		line[1000];
+		char		line_buf[100000];
+		vector<id_t>	line_words;
+		cnt_t 		docs_word_cnt = 0; 
+		cnt_t 		doc_cnt = 0; 
 	
-	while (docs.getline(line, 1000),   docs)  {
+	while (docs.getline(line_buf, 100000),   docs)  {
 		line_stream.clear();
-		line_stream.str(line);
+		line_stream.str(line_buf);
+		line_words.clear();
 
 		
-		cerr << "\nDOC:\n";
+		//cerr << "\nDOC:\n";
 		while (line_stream >> word,  line_stream)  {
-			cerr << word << endl;
+			if  ( str2id.find(word) == str2id.end() )  { cerr << "word \"" << word << "\" is not in dictinary\n"; }
+			//id_t  id = str2id[word];
+			//cerr << word << "   (" << id << ")   " << endl;
+			docs_word_cnt++;
 		}
+		doc_cnt++;
 	}
+
+	cerr << "*** document  words:  " << docs_word_cnt << endl;
+	cerr << "*** documents      :  " << doc_cnt << endl;
 	
 
 
