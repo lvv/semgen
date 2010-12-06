@@ -1,9 +1,12 @@
+
+	#include <cmath>
 	#include <cstdint>
 	#include <iostream>
 	#include <fstream>
 	#include <unordered_map>
 	#include <vector>
 	#include <sstream>
+	#include <algorithm>
 	using namespace std;
 
 
@@ -15,28 +18,84 @@
 
 			typedef 		uint32_t	cnt_t;
 			typedef 		uint32_t 	id_t;
-			typedef 		uint32_t	inv_freq_t;
+			typedef 		float		p_t;
 			typedef 		string	 	word_t;
 
 		
 		unordered_map<word_t, id_t> 	str2id;
 
-		struct	  	link_freq_t	{
-			id_t		id; 
-			inv_freq_t	freq;
+		struct	  	link_t	{
+				link_t ():   id(0),   p(0), cnt(0) {};
+			id_t	id; 
+			p_t	p;
+			cnt_t	cnt;
+			p_t	pcnt;
 		};
 
 	struct	  	rec_t  	{
-		inv_freq_t	freq; 			// word freq
-		link_freq_t	link[max_link];
+			rec_t ():   p(0), least_related_i(9999), link_size(0) {};
+		p_t	p;					// this word p
+		size_t 	least_related_i;
+		size_t	link_size;				// total links
+		link_t	link[max_link];				// word tracked pairs
+		word_t	word;
 	};
 
-	cnt_t		seen_words	= 0;
 	vector<rec_t>	TAB; 			// main table
+
+p_t	p_of_cnt(p_t p,  cnt_t n)   { return powf(p, (float)n);  }
+
+
+void 	update_link_list (id_t m, id_t s) {
+
+	///// update cnt if in list
+
+	auto it          =   TAB[m].link;
+	auto link_begin  =   TAB[m].link;
+	auto link_end    = & TAB[m].link[TAB[m].link_size];
+
+	for (;  it != link_end  &&  it->id != s;   it++) 	// find link to update
+		;
+
+	if (  it !=  link_end )  {				// if found,  update
+		it->cnt ++;
+		it->pcnt = p_of_cnt(it->p, it->cnt);
+	}
+	
+	///// else add to link list if not full 
+
+	else if (TAB[m].link_size < max_link)  {
+		it = link_end;
+		it->id	  = s;
+		it->cnt   = 1;
+		it->p     = TAB[s].p;
+		it->pcnt  = TAB[s].p;
+		TAB[m] .link_size ++;
+	}
+	
+	/////  else replace tail (least relevant) with more  relavant
+
+	else {
+		it  = link_end - 1;		// last link
+		if  (it->pcnt > TAB[s].p)  {
+			it->id   = s;
+			it->cnt  = 1;
+			it->p    = TAB[s].p;
+			it->pcnt = TAB[s].p;
+		}
+	}
+
+	// re-sort  (IT holds updated link, buble it up)
+
+	while (it != link_begin   &&  it->pcnt < (it-1)->pcnt) {	// re-sort
+		swap(*it, *(it-1));
+	}
+ }
 
 
 int main(int argc, char** argv)  {
 
+	TAB .push_back(rec_t()); 		// 1st row no used;
 
 	/////  CHECK ARGS
 	
@@ -46,23 +105,32 @@ int main(int argc, char** argv)  {
 	}
 
 
-	///// READ DICTIONARY
+	/////  READ DICTIONARY  /////////////////////////////////////////////////////////////////////////////////////
 
-		ifstream 	dic  (argv[2]);		 if (!dic) { cerr << "error: can not open dictionary file\n";  exit(2); } 
 		cnt_t 		cnt;
 		word_t		word;
 		//id_t		id;
-		cnt_t  dic_word_cnt = 0; 
+		cnt_t 		dic_word_cnt = 0; 
+		ifstream 	dic  (argv[2]);		 if (!dic) { cerr << "error: can not open dictionary file\n";  exit(2); } 
+		size_t		total_docs_words = 0;
 
 	while (dic >> cnt >> word,   dic)  {
 							// cout << "cnt: " << cnt << "            word: " << word << endl;
-		size_t idx = str2id.size();
-		str2id[word] = idx; 
-		TAB.push_back(rec_t());
-		TAB[idx].freq = cnt;
+		id_t id = str2id.size();		
+		str2id[word] = id; 			// we assume words in dic are unique
+		TAB .push_back (rec_t());
+		TAB[id].p = cnt;
+		TAB[id].word = word;
+		total_docs_words += cnt;
 		dic_word_cnt++;
 	}
+
+	// convert cnt to p
+	for (auto it = TAB.begin();   it != TAB.end();   it++)
+		it->p /= total_docs_words;
+
 	cerr << "*** dictionary words:  " << dic_word_cnt << endl;
+	cerr << "*** total dictionary words count:  " << total_docs_words << endl;
 	
 
 	///// PROCESS DOCS /////////////////////////////////////////////////////////////////////////////
@@ -83,9 +151,19 @@ int main(int argc, char** argv)  {
 		//cerr << "\nDOC:\n";
 		while (line_stream >> word,  line_stream)  {
 			if  ( str2id.find(word) == str2id.end() )  { cerr << "word \"" << word << "\" is not in dictinary\n"; }
-			//id_t  id = str2id[word];
+			id_t  id = str2id[word];
 			//cerr << word << "   (" << id << ")   " << endl;
+			line_words .push_back (id);
 			docs_word_cnt++;
+
+			// all word pairs
+			for (size_t m=0;   m < line_words.size();   m++)   {	// main/sub word cycles
+			for (size_t s=0;   s < line_words.size();   s++)   {
+				if (m==s) continue;
+				update_link_list( line_words[m], line_words[s] );
+			}
+			}
+
 		}
 		doc_cnt++;
 	}
@@ -94,12 +172,12 @@ int main(int argc, char** argv)  {
 	cerr << "*** documents      :  " << doc_cnt << endl;
 	
 
+	/////  PRINT RESULT  /////////////////////////////////////////////////////////////////////////////
 
-	
-
+	for (id_t id=0;   id < TAB.size();   id++)  {
+		cout << TAB[id].word;
+		for (size_t l = 0;   l < std::min((size_t)10, TAB[id].link_size);   l++)
+			cout << " " << TAB [TAB[id] .link[l] .id] .word;
+		cout << endl;
+	}
 }
-
-
-
-
-
