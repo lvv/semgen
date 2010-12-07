@@ -40,7 +40,7 @@
 	deque <rec_t>	TAB; 			// main table
 
 float   distance_factor(int pos1, int pos2 ) { return  1.f / /*sqrtf*/(std::abs(pos1-pos2)); }
-float   relevancy (link_t *L)     { return  (0.2f + logf((float)L->cnt) + L->cnt/20f) * L->cnt / TAB[L->id].tcnt * (L->dist/L->cnt); }
+float   relevancy (link_t *L)     { return  (20.f + L->cnt) * L->cnt / TAB[L->id].tcnt * (L->dist/L->cnt); }
 
 
 void 	update_link_list (id_t m, id_t s,  int pos1,  int pos2) {
@@ -171,7 +171,7 @@ int main(int argc, char** argv)  {
 					{
 					string word("group");
 					id_t id = str2id[word];
-					cerr.width(12);
+					cerr.width(16);
 					cerr <<  word << "/" << id << " tcnt=" << TAB[id].tcnt << endl;
 					for (size_t i=0; i<60; i++) 
 						cerr << "\t(" << i << ") " << TAB[TAB[id].link[i].id].word <<
