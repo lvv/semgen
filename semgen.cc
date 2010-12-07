@@ -4,7 +4,7 @@
 	#include <iostream>
 	#include <fstream>
 	#include <unordered_map>
-	#include <vector>
+	#include <deque>
 	#include <sstream>
 	#include <algorithm>
 	using namespace std;
@@ -12,7 +12,7 @@
 
 	//////  DATA STRUCTURE
 
-	size_t	const	static		max_link = 40;
+	size_t	const	static		max_link = 130;
 	size_t	const	static		max_word = 1000000;
 		
 
@@ -37,7 +37,7 @@
 		word_t	word;
 	};
 
-	vector<rec_t>	TAB; 			// main table
+	deque<rec_t>	TAB; 			// main table
 
 //p_t	p_of_cnt(p_t p,  cnt_t n)   { return powf(p, (float)n);  }
 float   Irelevancy(link_t *link) { return   float(TAB[link->id].tcnt) / float(link->cnt) ; }
@@ -176,4 +176,14 @@ int main(int argc, char** argv)  {
 			cout << " " << TAB [TAB[id] .link[l] .id] .word;
 		cout << endl;
 	}
+					{
+					string word("group");
+					id_t id = str2id[word];
+					cerr << word << "/" << id << " tcnt=" << TAB[id].tcnt << endl;
+					for (size_t i=0; i<60; i++) 
+						cerr << "\t(" << i << ") " << TAB[TAB[id].link[i].id].word <<
+							"\t/"		<<  TAB[id].link[i].id <<
+							"\t[cnt:"	<<  TAB[id].link[i].cnt << 
+							" tcnt:"	<<  TAB[TAB[id].link[i].id].tcnt << "]\n";
+					}
 }
