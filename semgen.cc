@@ -40,7 +40,7 @@
 	deque<rec_t>	TAB; 			// main table
 
 //p_t	p_of_cnt(p_t p,  cnt_t n)   { return powf(p, (float)n);  }
-float   Irelevancy(link_t *link) { return   float(TAB[link->id].tcnt) / float(link->cnt) ; }
+float   inv_relevancy(link_t *link) { return   float(TAB[link->id].tcnt) / (link->cnt * link->cnt) ; }
 
 
 void 	update_link_list (id_t m, id_t s) {
@@ -73,7 +73,7 @@ void 	update_link_list (id_t m, id_t s) {
 
 	else {
 		it  = link_end - 1;		// last link
-		if  (Irelevancy(it) > TAB[s].tcnt)  {
+		if  (inv_relevancy(it) > TAB[s].tcnt)  {
 			it->id   = s;
 			it->cnt  = 1;
 			//it->p    = TAB[s].p;
@@ -83,7 +83,7 @@ void 	update_link_list (id_t m, id_t s) {
 
 	// re-sort  (IT holds updated link, buble it up)
 
-	while (it != link_begin   &&  Irelevancy(it) < Irelevancy(it-1)) {	// re-sort
+	while (it != link_begin   &&  inv_relevancy(it) < inv_relevancy(it-1)) {	// re-sort
 		swap(*it, *(it-1));
 	}
  }
