@@ -21,14 +21,15 @@
 		unordered_map<word_t, id_t> 	str2id;
 
 		struct	  	link_t	{
-				link_t ():   id(0),  cnt(0) {};
+				link_t ():   id(0),  cnt(0), dist(1) {};
 			id_t	id; 
 			cnt_t	cnt;
+			float	dist;				// distance factor sum
 		};
 
 	struct	  	rec_t  	{
 			rec_t ():   tcnt(0), link_size(0) {};
-		cnt_t	tcnt;					// this word p
+		cnt_t	tcnt;					// this word total count
 		size_t	link_size;				// total links
 		link_t	link[max_link];				// word tracked pairs
 		word_t	word;
@@ -36,7 +37,8 @@
 
 	deque <rec_t>	TAB; 			// main table
 
-float   relevancy(link_t *link) { return  (0.5f*link->cnt*link->cnt + 0.5f*link->cnt) / TAB[link->id].tcnt ; }
+float   distance_factor(int pos1, int pos2 ) { return  1.f / (sqrt(std::abs(int(pos1)-pos2))); }
+float   relevancy(link_t *L) { return  (0.5f*L->cnt*L->cnt + 0.5f*L->cnt) / TAB[L->id].tcnt * L->dist; }
 
 
 void 	update_link_list (id_t m, id_t s) {
@@ -52,6 +54,7 @@ void 	update_link_list (id_t m, id_t s) {
 
 	if (  it !=  link_end )  {				// if found,  update
 		it->cnt ++;
+		it->dist += distance_factor(m,s);
 	}
 	
 	///// else add to link list if not full 
@@ -60,6 +63,7 @@ void 	update_link_list (id_t m, id_t s) {
 		it = link_end;
 		it->id	  = s;
 		it->cnt   = 1;
+		it->dist  = distance_factor(m,s);
 		TAB[m] .link_size ++;
 	}
 	
@@ -67,9 +71,10 @@ void 	update_link_list (id_t m, id_t s) {
 
 	else {
 		it  = link_end - 1;		// last link
-		if  (relevancy(it) < TAB[s].tcnt)  {
+		if  (relevancy(it) < 1.f/TAB[s].tcnt * distance_factor(m,s))  {
 			it->id   = s;
 			it->cnt  = 1;
+			it->dist = distance_factor(m,s);
 		}
 	}
 
@@ -168,6 +173,8 @@ int main(int argc, char** argv)  {
 						cerr << "\t(" << i << ") " << TAB[TAB[id].link[i].id].word <<
 							"\t/"		<<  TAB[id].link[i].id <<
 							"\t[cnt:"	<<  TAB[id].link[i].cnt << 
-							" tcnt:"	<<  TAB[TAB[id].link[i].id].tcnt << "]\n";
+							"\t tcnt:"	<<  TAB[TAB[id].link[i].id].tcnt <<
+							"\t dist:"	<<  TAB[id].link[i].dist <<
+							"]\n";
 					}
 }
