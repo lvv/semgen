@@ -10,16 +10,13 @@
 	using namespace std;
 
 
-	//////  DATA STRUCTURE
+	//////  DATA STRUCTURES
 
 	size_t	const	static		max_link = 130;
-	size_t	const	static		max_word = 1000000;
 		
-
 			typedef 		uint32_t	cnt_t;
 			typedef 		uint32_t 	id_t;
 			typedef 		string	 	word_t;
-
 		
 		unordered_map<word_t, id_t> 	str2id;
 
@@ -37,10 +34,9 @@
 		word_t	word;
 	};
 
-	deque<rec_t>	TAB; 			// main table
+	deque <rec_t>	TAB; 			// main table
 
-//p_t	p_of_cnt(p_t p,  cnt_t n)   { return powf(p, (float)n);  }
-float   inv_relevancy(link_t *link) { return   float(TAB[link->id].tcnt) / (link->cnt * link->cnt) ; }
+float   relevancy(link_t *link) { return  (0.5f*link->cnt*link->cnt + 0.5f*link->cnt) / TAB[link->id].tcnt ; }
 
 
 void 	update_link_list (id_t m, id_t s) {
@@ -64,8 +60,6 @@ void 	update_link_list (id_t m, id_t s) {
 		it = link_end;
 		it->id	  = s;
 		it->cnt   = 1;
-		//it->p     = TAB[s].p;
-		//it->pcnt  = TAB[s].p;
 		TAB[m] .link_size ++;
 	}
 	
@@ -73,17 +67,15 @@ void 	update_link_list (id_t m, id_t s) {
 
 	else {
 		it  = link_end - 1;		// last link
-		if  (inv_relevancy(it) > TAB[s].tcnt)  {
+		if  (relevancy(it) < TAB[s].tcnt)  {
 			it->id   = s;
 			it->cnt  = 1;
-			//it->p    = TAB[s].p;
-			//it->pcnt = TAB[s].p;
 		}
 	}
 
 	// re-sort  (IT holds updated link, buble it up)
 
-	while (it != link_begin   &&  inv_relevancy(it) < inv_relevancy(it-1)) {	// re-sort
+	while (it != link_begin   &&  relevancy(it) > relevancy(it-1)) {	// re-sort
 		swap(*it, *(it-1));
 	}
  }
@@ -121,10 +113,6 @@ int main(int argc, char** argv)  {
 		dic_word_cnt++;
 	}
 
-	// convert cnt to p
-	//for (auto it = TAB.begin();   it != TAB.end();   it++)
-	//	it->p /= total_docs_words;
-
 	cerr << "*** dictionary words:  " << dic_word_cnt << endl;
 	cerr << "*** total dictionary words count:  " << total_docs_words << endl;
 	
@@ -143,12 +131,9 @@ int main(int argc, char** argv)  {
 		line_stream.str(line_buf);
 		line_words.clear();
 
-		
-		//cerr << "\nDOC:\n";
 		while (line_stream >> word,  line_stream)  {
 			if  ( str2id.find(word) == str2id.end() )  { cerr << "word \"" << word << "\" is not in dictinary\n"; }
 			id_t  id = str2id[word];
-			//cerr << word << "   (" << id << ")   " << endl;
 			line_words .push_back (id);
 			docs_word_cnt++;
 
@@ -159,7 +144,6 @@ int main(int argc, char** argv)  {
 				update_link_list( line_words[m], line_words[s] );
 			}
 			}
-
 		}
 		doc_cnt++;
 	}
