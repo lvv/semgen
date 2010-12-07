@@ -18,24 +18,20 @@
 
 			typedef 		uint32_t	cnt_t;
 			typedef 		uint32_t 	id_t;
-			typedef 		float		p_t;
 			typedef 		string	 	word_t;
 
 		
 		unordered_map<word_t, id_t> 	str2id;
 
 		struct	  	link_t	{
-				link_t ():   id(0),   p(0), cnt(0) {};
+				link_t ():   id(0),  cnt(0) {};
 			id_t	id; 
-			p_t	p;
 			cnt_t	cnt;
-			p_t	pcnt;
 		};
 
 	struct	  	rec_t  	{
-			rec_t ():   p(0), least_related_i(9999), link_size(0) {};
-		p_t	p;					// this word p
-		size_t 	least_related_i;
+			rec_t ():   tcnt(0), link_size(0) {};
+		cnt_t	tcnt;					// this word p
 		size_t	link_size;				// total links
 		link_t	link[max_link];				// word tracked pairs
 		word_t	word;
@@ -43,7 +39,8 @@
 
 	vector<rec_t>	TAB; 			// main table
 
-p_t	p_of_cnt(p_t p,  cnt_t n)   { return powf(p, (float)n);  }
+//p_t	p_of_cnt(p_t p,  cnt_t n)   { return powf(p, (float)n);  }
+float   Irelevancy(link_t *link) { return   float(TAB[link->id].tcnt) / float(link->cnt) ; }
 
 
 void 	update_link_list (id_t m, id_t s) {
@@ -59,7 +56,6 @@ void 	update_link_list (id_t m, id_t s) {
 
 	if (  it !=  link_end )  {				// if found,  update
 		it->cnt ++;
-		it->pcnt = p_of_cnt(it->p, it->cnt);
 	}
 	
 	///// else add to link list if not full 
@@ -68,8 +64,8 @@ void 	update_link_list (id_t m, id_t s) {
 		it = link_end;
 		it->id	  = s;
 		it->cnt   = 1;
-		it->p     = TAB[s].p;
-		it->pcnt  = TAB[s].p;
+		//it->p     = TAB[s].p;
+		//it->pcnt  = TAB[s].p;
 		TAB[m] .link_size ++;
 	}
 	
@@ -77,17 +73,17 @@ void 	update_link_list (id_t m, id_t s) {
 
 	else {
 		it  = link_end - 1;		// last link
-		if  (it->pcnt > TAB[s].p)  {
+		if  (Irelevancy(it) > TAB[s].tcnt)  {
 			it->id   = s;
 			it->cnt  = 1;
-			it->p    = TAB[s].p;
-			it->pcnt = TAB[s].p;
+			//it->p    = TAB[s].p;
+			//it->pcnt = TAB[s].p;
 		}
 	}
 
 	// re-sort  (IT holds updated link, buble it up)
 
-	while (it != link_begin   &&  it->pcnt < (it-1)->pcnt) {	// re-sort
+	while (it != link_begin   &&  Irelevancy(it) < Irelevancy(it-1)) {	// re-sort
 		swap(*it, *(it-1));
 	}
  }
@@ -119,15 +115,15 @@ int main(int argc, char** argv)  {
 		id_t id = str2id.size();		
 		str2id[word] = id; 			// we assume words in dic are unique
 		TAB .push_back (rec_t());
-		TAB[id].p = cnt;
+		TAB[id].tcnt = cnt;
 		TAB[id].word = word;
 		total_docs_words += cnt;
 		dic_word_cnt++;
 	}
 
 	// convert cnt to p
-	for (auto it = TAB.begin();   it != TAB.end();   it++)
-		it->p /= total_docs_words;
+	//for (auto it = TAB.begin();   it != TAB.end();   it++)
+	//	it->p /= total_docs_words;
 
 	cerr << "*** dictionary words:  " << dic_word_cnt << endl;
 	cerr << "*** total dictionary words count:  " << total_docs_words << endl;

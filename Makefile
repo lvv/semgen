@@ -1,4 +1,4 @@
-CXXFLAGS = -O3 -O3 -march=native  -fwhole-program --combine -Wall -std=gnu++0x  -lm
+CXXFLAGS +=  -std=gnu++0x -O3 -march=native  -fwhole-program --combine -Wall -lm
 
 run: semgen
-	./semgen ukwac-uniqmultiwordterms.SAMPLE.txt ukwac-vocabulary.SAMPLE.txt  |gzip > result.gz
+	/usr/bin/time ./semgen ukwac-uniqmultiwordterms.SAMPLE.txt ukwac-vocabulary.SAMPLE.txt  |gzip > result.gz
