@@ -2,6 +2,7 @@
 	#include <cmath>
 	#include <cstdint>
 	#include <iostream>
+	#include <iomanip>
 	#include <fstream>
 	#include <unordered_map>
 	#include <deque>
@@ -38,8 +39,8 @@
 
 	deque <rec_t>	TAB; 			// main table
 
-float   distance_factor(int pos1, int pos2 ) { return  1.f / (/*sqrtf*/(std::abs(int(pos1)-pos2))); }
-float   relevancy(link_t *L) { return  (0.1f*L->cnt*L->cnt + 0.9f*L->cnt) / TAB[L->id].tcnt * (L->dist/L->cnt); }
+float   distance_factor(int pos1, int pos2 ) { return  1.f / /*sqrtf*/(std::abs(pos1-pos2)); }
+float   relevancy (link_t *L)     { return  (0.2f + sqrtf((float)L->cnt)) * L->cnt / TAB[L->id].tcnt * (L->dist/L->cnt); }
 
 
 void 	update_link_list (id_t m, id_t s,  int pos1,  int pos2) {
@@ -116,7 +117,7 @@ int main(int argc, char** argv)  {
 		TAB[id].tcnt = cnt;
 		TAB[id].word = word;
 		total_docs_words += cnt;
-		dic_word_cnt++;
+		dic_word_cnt ++;
 	}
 
 	cerr << "*** dictionary words:  " << dic_word_cnt << endl;
@@ -126,28 +127,28 @@ int main(int argc, char** argv)  {
 	///// PROCESS DOCS /////////////////////////////////////////////////////////////////////////////
 
 		ifstream 	docs  (argv[1]);	 if (!docs) { cerr << "error: can not open documents file\n";  exit(3); } 
-		istringstream   line_stream;
-		char		line_buf[100000];
-		vector<id_t>	line_words;
+		istringstream   doc_stream;
+		char		doc_buf[100000];
+		vector<id_t>	doc_words;
 		cnt_t 		docs_word_cnt = 0; 
 		cnt_t 		doc_cnt = 0; 
 	
-	while (docs.getline(line_buf, 100000),   docs)  {
-		line_stream.clear();
-		line_stream.str(line_buf);
-		line_words.clear();
+	while (docs.getline(doc_buf, 100000),   docs)  {
+		doc_stream.clear();
+		doc_stream.str(doc_buf);
+		doc_words.clear();
 
-		while (line_stream >> word,  line_stream)  {
+		while (doc_stream >> word,  doc_stream)  {
 			if  ( str2id.find(word) == str2id.end() )  { cerr << "word \"" << word << "\" is not in dictinary\n"; }
 			id_t  id = str2id[word];
-			line_words .push_back (id);
+			doc_words .push_back (id);
 			docs_word_cnt++;
 
 			// all word pairs
-			for (size_t m=0;   m < line_words.size();   m++)   {	// main/sub word cycles
-			for (size_t s=0;   s < line_words.size();   s++)   {
+			for (size_t m=0;   m < doc_words.size();   m++)   {	// main/sub word cycles
+			for (size_t s=0;   s < doc_words.size();   s++)   {
 				if (m==s) continue;
-				update_link_list( line_words[m], line_words[s], m, s);
+				update_link_list( doc_words[m], doc_words[s], m, s);
 			}
 			}
 		}
@@ -166,17 +167,20 @@ int main(int argc, char** argv)  {
 			cout << " " << TAB [TAB[id] .link[l] .id] .word;
 		cout << endl;
 	}
+					#ifndef NDEBUG
 					{
 					string word("group");
 					id_t id = str2id[word];
-					cerr << width(12) << word << "/" << id << " tcnt=" << TAB[id].tcnt << endl;
+					cerr.width(12);
+					cerr <<  word << "/" << id << " tcnt=" << TAB[id].tcnt << endl;
 					for (size_t i=0; i<60; i++) 
 						cerr << "\t(" << i << ") " << TAB[TAB[id].link[i].id].word <<
 							"\t/"		<<  TAB[id].link[i].id <<
 							"\t[cnt:"	<<  TAB[id].link[i].cnt << 
 							"\t tcnt:"	<<  TAB[TAB[id].link[i].id].tcnt <<
 							"\t avg dist:"	<<  TAB[id].link[i].dist / TAB[id].link[i].cnt <<
-							"\t freq-factor:"<<  (float) TAB[id].link[i].cnt / TAB[TAB[id].link[i].id].tcnt 
+							"\t freq-factor:"<<  (float) TAB[id].link[i].cnt / TAB[TAB[id].link[i].id].tcnt  << 
 							"]\n";
 					}
+					#endif
 }
