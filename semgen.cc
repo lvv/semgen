@@ -5,6 +5,7 @@
 	#include <fstream>
 	#include <unordered_map>
 	#include <deque>
+	#include <vector>
 	#include <sstream>
 	#include <algorithm>
 	using namespace std;
@@ -37,8 +38,8 @@
 
 	deque <rec_t>	TAB; 			// main table
 
-float   distance_factor(int pos1, int pos2 ) { return  1.f / (sqrtf(std::abs(int(pos1)-pos2))); }
-float   relevancy(link_t *L) { return  (0.5f*L->cnt*L->cnt + 0.5f*L->cnt) / TAB[L->id].tcnt * L->dist; }
+float   distance_factor(int pos1, int pos2 ) { return  1.f / (/*sqrtf*/(std::abs(int(pos1)-pos2))); }
+float   relevancy(link_t *L) { return  (0.5f*L->cnt*L->cnt + 0.5f*L->cnt) / TAB[L->id].tcnt * (L->dist/L->cnt); }
 
 
 void 	update_link_list (id_t m, id_t s,  int pos1,  int pos2) {
@@ -174,7 +175,7 @@ int main(int argc, char** argv)  {
 							"\t/"		<<  TAB[id].link[i].id <<
 							"\t[cnt:"	<<  TAB[id].link[i].cnt << 
 							"\t tcnt:"	<<  TAB[TAB[id].link[i].id].tcnt <<
-							"\t dist:"	<<  TAB[id].link[i].dist <<
+							"\t avg dist:"	<<  TAB[id].link[i].dist / TAB[id].link[i].cnt <<
 							"]\n";
 					}
 }
