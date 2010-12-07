@@ -1,0 +1,30 @@
+SEMGEN
+------
+Finds semantically related terms over a large vocabulary
+
+
+This entry in  MetaOptimize.com's   NLP competition.
+More info about competition and datasets: http://metaoptimize.com/blog/
+
+Current result file can be downloaded from http://volnitsky.com/project/semgen/result.gz
+
+To compile you will need version of GCC supporting C++0x extensions. 
+GCC-4.5.1 was used in development. 
+To run  - at least 4GB of available RAM is needed. 
+Download documents and dictionary files. 
+
+Compile semgen:
+
+	make semgen
+
+Run semgen with downloaded dataset:
+
+	make run
+
+Run time about 2 minute. 
+Generated output file will be in "result.gz"
+
+
+
+
+
