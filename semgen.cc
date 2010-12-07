@@ -37,11 +37,11 @@
 
 	deque <rec_t>	TAB; 			// main table
 
-float   distance_factor(int pos1, int pos2 ) { return  1.f / (sqrt(std::abs(int(pos1)-pos2))); }
+float   distance_factor(int pos1, int pos2 ) { return  1.f / (sqrtf(std::abs(int(pos1)-pos2))); }
 float   relevancy(link_t *L) { return  (0.5f*L->cnt*L->cnt + 0.5f*L->cnt) / TAB[L->id].tcnt * L->dist; }
 
 
-void 	update_link_list (id_t m, id_t s) {
+void 	update_link_list (id_t m, id_t s,  int pos1,  int pos2) {
 
 	///// update cnt if in list
 
@@ -54,7 +54,7 @@ void 	update_link_list (id_t m, id_t s) {
 
 	if (  it !=  link_end )  {				// if found,  update
 		it->cnt ++;
-		it->dist += distance_factor(m,s);
+		it->dist += distance_factor(pos1, pos2);
 	}
 	
 	///// else add to link list if not full 
@@ -63,7 +63,7 @@ void 	update_link_list (id_t m, id_t s) {
 		it = link_end;
 		it->id	  = s;
 		it->cnt   = 1;
-		it->dist  = distance_factor(m,s);
+		it->dist  = distance_factor(pos1, pos2);
 		TAB[m] .link_size ++;
 	}
 	
@@ -71,10 +71,10 @@ void 	update_link_list (id_t m, id_t s) {
 
 	else {
 		it  = link_end - 1;		// last link
-		if  (relevancy(it) < 1.f/TAB[s].tcnt * distance_factor(m,s))  {
+		if  (relevancy(it) < 1.f/TAB[s].tcnt * distance_factor(pos1, pos2))  {
 			it->id   = s;
 			it->cnt  = 1;
-			it->dist = distance_factor(m,s);
+			it->dist = distance_factor(pos1, pos2);
 		}
 	}
 
@@ -146,7 +146,7 @@ int main(int argc, char** argv)  {
 			for (size_t m=0;   m < line_words.size();   m++)   {	// main/sub word cycles
 			for (size_t s=0;   s < line_words.size();   s++)   {
 				if (m==s) continue;
-				update_link_list( line_words[m], line_words[s] );
+				update_link_list( line_words[m], line_words[s], m, s);
 			}
 			}
 		}
